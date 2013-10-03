@@ -1,6 +1,8 @@
 var errors = {
   OK:{},
   NO_FUNCTIONALITY_NAME:{message:'No functionality name provided'},
+  NO_TEMPLATE_NAME:{message:'No template name provided for storing'},
+  INVALID_TEMPLATE_NAME:{message:'Template name [templatename] is invalid',params:['templatename']},
   NO_INSTANCE_NAME:{message:'No instance name provided for instantiation'},
   NO_PARAM_OBJ:{message:'No parameters provided for instantiation'},
   INSTANCE_ALREADY_EXISTS:{message:'Instance [instancename] already exists',params:['instancename']}
@@ -35,14 +37,71 @@ var spawn = function(paramobj,statuscb){
 };
 spawn.params = 'originalobj';
 
+var storeTemplate = function(paramobj,statuscb){
+  if(!paramobj){
+    return statuscb('NO_PARAM_OBJ');
+  }
+  if(!paramobj.name){
+    return statuscb('NO_TEMPLATE_NAME');
+  }
+  var to = this.self.templates[paramobj.name];
+  var found = true;
+  if(!to){
+    found = false;
+    to = {};
+  }
+  for(var i in paramobj){
+    if(i!=='name'){
+      to[i] = paramobj[i];
+    }
+  }
+  if(!found){
+    this.self.templates[paramobj.name] = to;
+  }
+  statuscb('OK');
+};
+storeTemplate.params = 'originalobj';
+
+var spawnTemplate = function(paramobj,statuscb){
+  if(!paramobj){
+    return statuscb('NO_PARAM_OBJ');
+  }
+  if(!paramobj.name){
+    return statuscb('NO_INSTANCE_NAME');
+  }
+  if(!paramobj.templatename){
+    return statuscb('NO_TEMPLATE_NAME');
+  }
+  var to = this.self.templates[paramobj.templatename];
+  if(!to){
+    return statuscb('INVALID_TEMPLATE_NAME',paramobj.templatename);
+  }
+  var so = {};
+  for(var i in to){
+    so[i] = to[i];
+  }
+  so.name = paramobj.template+so.name;
+  for(var i in paramobj){
+    if(i!=='templatename'){
+      so[i] = paramobj[i];
+    }
+  }
+  so.name = paramobj.templatename+so.name;
+  return spawn.call(this,so,statuscb);
+};
+spawnTemplate.params = 'originalobj';
+
 var init = function(statuscb){
   if(!this.self.functionalityname){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
+  this.self.templates = {};
 };
 
 module.exports = {
   errors:errors,
   init:init,
-  spawn:spawn
+  spawn:spawn,
+  storeTemplate:storeTemplate,
+  spawnTemplate:spawnTemplate
 };

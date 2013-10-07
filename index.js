@@ -12,7 +12,7 @@ var spawn = function(paramobj,statuscb){
   if(!paramobj){
     return statuscb('NO_PARAM_OBJ');
   }
-  if(!paramobj.name){
+  if(typeof paramobj.name === 'undefined'){
     return statuscb('NO_INSTANCE_NAME');
   }
   var instname = paramobj.name;
@@ -66,7 +66,7 @@ var spawnTemplate = function(paramobj,statuscb){
   if(!paramobj){
     return statuscb('NO_PARAM_OBJ');
   }
-  if(!paramobj.name){
+  if(typeof paramobj.name === 'undefined'){
     return statuscb('NO_INSTANCE_NAME');
   }
   if(!paramobj.templatename){

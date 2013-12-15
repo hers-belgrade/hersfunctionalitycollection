@@ -19,7 +19,8 @@ var spawn = function(paramobj,statuscb){
   if(!this.self.functionalityname){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
-  var felem = this.data.element([instname]);
+  var target = this.self.target ? this.self.target : this.data;
+  var felem = target.element([instname]);
   if(felem){
     return statuscb('INSTANCE_ALREADY_EXISTS',instname);
   }
@@ -28,10 +29,10 @@ var spawn = function(paramobj,statuscb){
   //functionality attached to it be the same?
   //or distinct? 
   //for now, let it be "the same key", paramobj.key
-  this.data.commit('new_instance',[
+  target.commit('new_instance',[
   ['set',[instname],paramobj.key]
   ]);
-  var felem = this.data.element([instname]);
+  var felem = target.element([instname]);
   felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };

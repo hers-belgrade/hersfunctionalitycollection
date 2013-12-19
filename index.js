@@ -30,7 +30,8 @@ var spawn = function(paramobj,statuscb){
   //or distinct? 
   //for now, let it be "the same key", paramobj.key
   target.commit('new_instance',[
-  ['set',[instname],paramobj.key]
+  ['set',[instname],paramobj.key],
+  ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
   ]);
   var felem = target.element([instname]);
   felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);

@@ -34,7 +34,8 @@ var spawn = function(paramobj,statuscb){
   ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
   ]);
   var felem = target.element([instname]);
-  felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
+  felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,target);
+  //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };
 spawn.params = 'originalobj';

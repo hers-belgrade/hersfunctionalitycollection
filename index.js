@@ -20,21 +20,24 @@ var spawn = function(paramobj,statuscb){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
   var target = this.self.target ? this.self.target : this.data;
+  var consumeritf = this.self.consumeritf || this.consumeritf;
   var felem = target.element([instname]);
-  if(felem){
+  if(!felem){
+    //observe the doubt about the keys:
+    //should the keys for locking the fresh new instance and the 
+    //functionality attached to it be the same?
+    //or distinct? 
+    //for now, let it be "the same key", paramobj.key
+    target.commit('new_instance',[
+    ['set',[instname],paramobj.key],
+    ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
+    ]);
+    felem = target.element([instname]);
+  }
+  if(felem.functionalities[this.self.functionalityname]){
     return statuscb('INSTANCE_ALREADY_EXISTS',instname);
   }
-  //observe the doubt about the keys:
-  //should the keys for locking the fresh new instance and the 
-  //functionality attached to it be the same?
-  //or distinct? 
-  //for now, let it be "the same key", paramobj.key
-  target.commit('new_instance',[
-  ['set',[instname],paramobj.key],
-  ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
-  ]);
-  var felem = target.element([instname]);
-  felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,target);
+  felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,consumeritf);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };

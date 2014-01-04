@@ -5,7 +5,8 @@ var errors = {
   INVALID_TEMPLATE_NAME:{message:'Template name [templatename] is invalid',params:['templatename']},
   NO_INSTANCE_NAME:{message:'No instance name provided for instantiation'},
   NO_PARAM_OBJ:{message:'No parameters provided for instantiation'},
-  INSTANCE_ALREADY_EXISTS:{message:'Instance [instancename] already exists',params:['instancename']}
+  INSTANCE_ALREADY_EXISTS:{message:'Instance [instancename] already exists',params:['instancename']},
+  INSTANCE_DOESNT_EXIST:{message:'Instance [instancename] does not exist',params:['instancename']}
 };
 
 var spawn = function(paramobj,statuscb){
@@ -37,7 +38,11 @@ var spawn = function(paramobj,statuscb){
   if(felem.functionalities[this.self.functionalityname]){
     return statuscb('INSTANCE_ALREADY_EXISTS',instname);
   }
-  felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,consumeritf);
+  var key = paramobj.key;
+  delete paramobj.key;
+  var environment = paramobj.environment;
+  delete paramobj.environment;
+  felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };
@@ -88,14 +93,27 @@ var spawnTemplate = function(paramobj,statuscb){
   }
   so.name = paramobj.template+so.name;
   for(var i in paramobj){
-    if(i!=='templatename'){
+    //if(i!=='templatename'){ //do pass the templatename for spawn, yes...
       so[i] = paramobj[i];
-    }
+    //}
   }
   so.name = paramobj.templatename+so.name;
   return spawn.call(this,so,statuscb);
 };
 spawnTemplate.params = 'originalobj';
+
+function removeTemplateInstance(instancename,statuscb){
+  var target = this.self.target ? this.self.target : this.data;
+  var felem = target.element([instancename]);
+  if(!felem){
+    return statuscb('INSTANCE_DOESNT_EXIST',instancename);
+  }
+  target.commit('instance_down',[
+    ['remove',[instancename]]
+  ]);
+  statuscb('OK');
+};
+removeTemplateInstance.params = ['instancename'];
 
 var init = function(statuscb){
   if(!this.self.functionalityname){
@@ -109,5 +127,6 @@ module.exports = {
   init:init,
   spawn:spawn,
   storeTemplate:storeTemplate,
-  spawnTemplate:spawnTemplate
+  spawnTemplate:spawnTemplate,
+  removeTemplateInstance:removeTemplateInstance
 };

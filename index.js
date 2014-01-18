@@ -42,7 +42,9 @@ var spawn = function(paramobj,statuscb){
   delete paramobj.key;
   var environment = paramobj.environment;
   delete paramobj.environment;
+  console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
+  this.cbs.instanceUp(paramobj.templatename,paramobj.name);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };
@@ -91,7 +93,6 @@ var spawnTemplate = function(paramobj,statuscb){
   for(var i in to){
     so[i] = to[i];
   }
-  so.name = paramobj.template+so.name;
   for(var i in paramobj){
     //if(i!=='templatename'){ //do pass the templatename for spawn, yes...
       so[i] = paramobj[i];
@@ -120,6 +121,36 @@ var init = function(statuscb){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
   this.self.templates = {};
+  var target = this.self.target ? this.self.target : this.data;
+  var t = this;
+  this.self.sniffer = target.subscribeToElements(function(name,el){
+    var _t = t;
+    if(el.type()==='Collection'){
+      var sniff = function(){
+        var fne = el.element(['_functionality']);
+        if(fne){
+          var fn = fne.value();
+          console.log('_functionality',fn);
+          if(fn===_t.self.functionalityname){
+            console.log('about to attach',fn,'on',name);
+            if(el.functionalities[fn]){
+              return;
+            }
+            try{
+              el.attach(fn,{},_t.self.key,_t.self.environment,_t.self.consumeritf||_t.consumeritf);
+              return;
+            }
+            catch(e){
+            }
+          }
+        }else{
+          console.log('_functionality not found yet');
+        }
+        setTimeout(sniff,1000);
+      };
+      sniff();
+    }
+  });
 };
 
 module.exports = {
@@ -128,5 +159,9 @@ module.exports = {
   spawn:spawn,
   storeTemplate:storeTemplate,
   spawnTemplate:spawnTemplate,
-  removeTemplateInstance:removeTemplateInstance
+  removeTemplateInstance:removeTemplateInstance,
+  requirements:{
+    instanceUp:function(templatename,name){
+    }
+  }
 };

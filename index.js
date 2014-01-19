@@ -138,6 +138,7 @@ var init = function(statuscb){
             }
             try{
               el.attach(fn,{},_t.self.key,_t.self.environment,_t.self.consumeritf||_t.consumeritf);
+              _t.cbs.instanceUp(el.element(['templatename']).value(),name);
               return;
             }
             catch(e){
@@ -162,6 +163,7 @@ module.exports = {
   removeTemplateInstance:removeTemplateInstance,
   requirements:{
     instanceUp:function(templatename,name){
+      console.log('still noone handling',templatename,name);
     }
   }
 };

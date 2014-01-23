@@ -40,11 +40,11 @@ var spawn = function(paramobj,statuscb){
   }
   var key = paramobj.key;
   delete paramobj.key;
-  var environment = paramobj.environment;
+  var environment = paramobj.environment||this.self.environment;
   delete paramobj.environment;
   console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
-  this.cbs.instanceUp(paramobj.templatename,paramobj.name);
+  this.cbs.instanceUp(felem);//paramobj.templatename,paramobj.name);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
   statuscb('OK');
 };
@@ -124,29 +124,35 @@ var init = function(statuscb){
   var target = this.self.target ? this.self.target : this.data;
   var t = this;
   this.self.sniffer = target.subscribeToElements(function(name,el){
-    var _t = t;
+    if(!el){
+      //instanceDown?
+      return;
+    }
     if(el.type()==='Collection'){
+      var _t = t;
       var sniff = function(){
         var fne = el.element(['_functionality']);
         if(fne){
           var fn = fne.value();
-          console.log('_functionality',fn);
           if(fn===_t.self.functionalityname){
-            console.log('about to attach',fn,'on',name);
             if(el.functionalities[fn]){
               return;
             }
             try{
+              console.log('attaching',name);
               el.attach(fn,{},_t.self.key,_t.self.environment,_t.self.consumeritf||_t.consumeritf);
-              _t.cbs.instanceUp(el.element(['templatename']).value(),name);
+              _t.cbs.instanceUp(el);//.element(['templatename']).value(),name);
               return;
             }
             catch(e){
+              console.log(e.stack);
+              console.log(e);
             }
           }
         }else{
           console.log('_functionality not found yet');
         }
+        console.log(name,'settingTimeout');
         setTimeout(sniff,1000);
       };
       sniff();
@@ -162,8 +168,8 @@ module.exports = {
   spawnTemplate:spawnTemplate,
   removeTemplateInstance:removeTemplateInstance,
   requirements:{
-    instanceUp:function(templatename,name){
-      console.log('still noone handling',templatename,name);
+    instanceUp:function(instance){
+      console.log('still noone handling',instance);
     }
   }
 };

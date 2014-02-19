@@ -1,3 +1,4 @@
+var Timeout = require('herstimeout');
 var errors = {
   OK:{},
   NO_FUNCTIONALITY_NAME:{message:'No functionality name provided'},
@@ -41,8 +42,20 @@ var spawn = function(paramobj,statuscb){
   var key = paramobj.key;
   delete paramobj.key;
   var environment = paramobj.environment||this.self.environment;
+  var eg = environment.gone;
+  environment.gone = function(){
+    //console.log('gone',this);
+    if(typeof eg === 'function'){
+      eg.apply(this,arguments);
+    }
+    Timeout.set(function(target,instname){
+      target.commit('instance_down',[
+        ['remove',[instname]]
+      ]);
+    },1000,target,this.self.name);
+  };
   delete paramobj.environment;
-  console.log('functionalitycollection attaching',this.self.functionalityname);
+  //console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
   this.cbs.instanceUp(felem);//paramobj.templatename,paramobj.name);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
@@ -123,39 +136,29 @@ var init = function(statuscb){
   this.self.templates = {};
   var target = this.self.target ? this.self.target : this.data;
   var t = this;
-  this.self.sniffer = target.subscribeToElements(function(name,el){
-    if(!el){
-      //instanceDown?
-      return;
-    }
-    if(el.type()==='Collection'){
-      var _t = t;
-      var sniff = function(){
-        var fne = el.element(['_functionality']);
-        if(fne){
-          var fn = fne.value();
-          if(fn===_t.self.functionalityname){
-            if(el.functionalities[fn]){
-              return;
-            }
-            try{
-              console.log('attaching',name);
-              el.attach(fn,{},_t.self.key,_t.self.environment,_t.self.consumeritf||_t.consumeritf);
-              _t.cbs.instanceUp(el);//.element(['templatename']).value(),name);
-              return;
-            }
-            catch(e){
-              console.log(e.stack);
-              console.log(e);
-            }
+  target.waitFor(['Collection:*',['_functionality','name']],function(roomname,map){
+    var fn = map._functionality;
+    //console.log(roomname,map);
+    if(fn===t.self.functionalityname){
+      var el = target.element([roomname]);
+      if(el.functionalities[fn]){
+        return;
+      }
+      Timeout.set(function(t,fn,el){
+        try{
+          if(el.functionalities[fn]){
+            return;
           }
-        }else{
-          console.log('_functionality not found yet');
+          //console.log('attaching',name);
+          el.attach(fn,{},t.self.key,t.self.environment);
+          t.cbs.instanceUp(el);//.element(['templatename']).value(),name);
+          return;
         }
-        console.log(name,'settingTimeout');
-        setTimeout(sniff,1000);
-      };
-      sniff();
+        catch(e){
+          console.log(e.stack);
+          console.log(e);
+        }
+      },1000,t,fn,el);
     }
   });
 };
@@ -169,7 +172,7 @@ module.exports = {
   removeTemplateInstance:removeTemplateInstance,
   requirements:{
     instanceUp:function(instance){
-      console.log('still noone handling',instance);
+      //console.log('still noone handling',instance);
     }
   }
 };

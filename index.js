@@ -36,7 +36,7 @@ var spawn = function(paramobj,statuscb){
     ]);
     felem = target.element([instname]);
   }
-  if(felem.functionalities[this.self.functionalityname]){
+  if(felem.functionalities && felem.functionalities[this.self.functionalityname]){
     return statuscb('INSTANCE_ALREADY_EXISTS',instname);
   }
   var key = paramobj.key;
@@ -44,7 +44,7 @@ var spawn = function(paramobj,statuscb){
   var environment = paramobj.environment||this.self.environment;
   var eg = environment.gone;
   environment.gone = function(){
-    //console.log('gone',this);
+    console.log('gone',this);
     if(typeof eg === 'function'){
       eg.apply(this,arguments);
     }
@@ -141,12 +141,16 @@ var init = function(statuscb){
     //console.log(roomname,map);
     if(fn===t.self.functionalityname){
       var el = target.element([roomname]);
-      if(el.functionalities[fn]){
+      if(el.functionalities && el.functionalities[fn]){
         return;
       }
       Timeout.set(function(t,fn,el){
         try{
-          if(el.functionalities[fn]){
+          if(!el.element){
+            //this el is destroyed
+            return;
+          }
+          if(el.functionalities && el.functionalities[fn]){
             return;
           }
           //console.log('attaching',name);

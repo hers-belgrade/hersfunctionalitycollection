@@ -44,7 +44,6 @@ var spawn = function(paramobj,statuscb){
   var environment = paramobj.environment||this.self.environment;
   var eg = environment.gone;
   environment.gone = function(){
-    console.log('gone',this);
     if(typeof eg === 'function'){
       eg.apply(this,arguments);
     }

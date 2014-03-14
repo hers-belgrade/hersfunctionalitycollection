@@ -56,9 +56,7 @@ var spawn = function(paramobj,statuscb){
   delete paramobj.environment;
   //console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
-  this.cbs.instanceUp(felem);//paramobj.templatename,paramobj.name);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
-  statuscb('OK');
 };
 spawn.params = 'originalobj';
 
@@ -172,10 +170,5 @@ module.exports = {
   spawn:spawn,
   storeTemplate:storeTemplate,
   spawnTemplate:spawnTemplate,
-  removeTemplateInstance:removeTemplateInstance,
-  requirements:{
-    instanceUp:function(instance){
-      //console.log('still noone handling',instance);
-    }
-  }
+  removeTemplateInstance:removeTemplateInstance
 };

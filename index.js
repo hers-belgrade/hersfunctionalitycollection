@@ -21,41 +21,27 @@ var spawn = function(paramobj,statuscb){
   if(!this.self.functionalityname){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
-  var target = this.self.target ? this.self.target : this.data;
   var consumeritf = this.self.consumeritf || this.consumeritf;
-  var felem = target.element([instname]);
+  var felem = this.data.element([instname]);
   if(!felem){
     //observe the doubt about the keys:
     //should the keys for locking the fresh new instance and the 
     //functionality attached to it be the same?
     //or distinct? 
     //for now, let it be "the same key", paramobj.key
-    target.commit('new_instance',[
+    this.data.commit('new_instance',[
     ['set',[instname],paramobj.key],
     ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
     ]);
-    felem = target.element([instname]);
+    felem = this.data.element([instname]);
   }
   if(felem.functionalities && felem.functionalities[this.self.functionalityname]){
     return statuscb('INSTANCE_ALREADY_EXISTS',instname);
   }
   var key = paramobj.key;
   delete paramobj.key;
-  var environment = paramobj.environment||this.self.environment;
-  var eg = environment.gone;
-  environment.gone = function(){
-    if(typeof eg === 'function'){
-      eg.apply(this,arguments);
-    }
-    Timeout.set(function(target,instname){
-      target.commit('instance_down',[
-        ['remove',[instname]]
-      ]);
-    },1000,target,this.self.name);
-  };
-  delete paramobj.environment;
   //console.log('functionalitycollection attaching',this.self.functionalityname);
-  felem.attach(this.self.functionalityname,paramobj,key,environment,consumeritf);
+  felem.attach(this.self.functionalityname,paramobj,key);
   //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
 };
 spawn.params = 'originalobj';
@@ -114,12 +100,11 @@ var spawnTemplate = function(paramobj,statuscb){
 spawnTemplate.params = 'originalobj';
 
 function removeTemplateInstance(instancename,statuscb){
-  var target = this.self.target ? this.self.target : this.data;
-  var felem = target.element([instancename]);
+  var felem = this.data.element([instancename]);
   if(!felem){
     return statuscb('INSTANCE_DOESNT_EXIST',instancename);
   }
-  target.commit('instance_down',[
+  this.data.commit('instance_down',[
     ['remove',[instancename]]
   ]);
   statuscb('OK');
@@ -131,13 +116,12 @@ var init = function(statuscb){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
   this.self.templates = {};
-  var target = this.self.target ? this.self.target : this.data;
   var t = this;
-  target.waitFor(['Collection:*',['_functionality','name']],function(roomname,map){
+  this.superUser.waitFor(['Collection:*',['_functionality','name']],function(roomname,map){
     var fn = map._functionality;
     //console.log(roomname,map);
     if(fn===t.self.functionalityname){
-      var el = target.element([roomname]);
+      var el = t.data.element([roomname]);
       if(el.functionalities && el.functionalities[fn]){
         return;
       }

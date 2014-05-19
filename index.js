@@ -42,7 +42,16 @@ var spawn = function(paramobj,statuscb){
   delete paramobj.key;
   //console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key);
-  //felem.attach(this.self.functionalityname,paramobj,paramobj.key,null,this.consumeritf);
+  var flw = this.superUser.follow([instname]);
+  var d = this.data;
+  flw.handleBid('gone',function(){
+    console.log(instname,'gone');
+    //flw.bid('gone',{});
+    d.commit('room_gone',[
+      ['remove',[instname]]
+    ]);
+  });
+  statuscb('OK');
 };
 spawn.params = 'originalobj';
 
@@ -116,7 +125,14 @@ var init = function(statuscb){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
   this.self.templates = {};
+  return;
   var t = this;
+  this.superUser.waitFor(['*','__requirements','gone'],function(roomname){
+    console.log(roomname,'gone');
+    t.data.commit('remove_room',[
+      ['remove',[roomname]]
+    ]);
+  });
   this.superUser.waitFor(['Collection:*',['_functionality','name']],function(roomname,map){
     var fn = map._functionality;
     //console.log(roomname,map);

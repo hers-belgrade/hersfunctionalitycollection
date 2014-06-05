@@ -31,7 +31,6 @@ var spawn = function(paramobj,statuscb){
     //for now, let it be "the same key", paramobj.key
     this.data.commit('new_instance',[
     ['set',[instname],paramobj.key],
-    ['set',[instname,'_functionality'],[this.self.functionalityname,undefined,'dcp']]
     ]);
     felem = this.data.element([instname]);
   }
@@ -125,43 +124,6 @@ var init = function(statuscb){
     return statuscb('NO_FUNCTIONALITY_NAME');
   }
   this.self.templates = {};
-  return;
-  var t = this;
-  this.superUser.waitFor(['*','__requirements','gone'],function(roomname){
-    console.log(roomname,'gone');
-    t.data.commit('remove_room',[
-      ['remove',[roomname]]
-    ]);
-  });
-  this.superUser.waitFor(['Collection:*',['_functionality','name']],function(roomname,map){
-    var fn = map._functionality;
-    //console.log(roomname,map);
-    if(fn===t.self.functionalityname){
-      var el = t.data.element([roomname]);
-      if(el.functionalities && el.functionalities[fn]){
-        return;
-      }
-      Timeout.set(function(t,fn,el){
-        try{
-          if(!el.element){
-            //this el is destroyed
-            return;
-          }
-          if(el.functionalities && el.functionalities[fn]){
-            return;
-          }
-          //console.log('attaching',name);
-          el.attach(fn,{},t.self.key,t.self.environment);
-          t.cbs.instanceUp(el);//.element(['templatename']).value(),name);
-          return;
-        }
-        catch(e){
-          console.log(e.stack);
-          console.log(e);
-        }
-      },1000,t,fn,el);
-    }
-  });
 };
 
 module.exports = {

@@ -41,9 +41,14 @@ var spawn = function(paramobj,statuscb){
   delete paramobj.key;
   //console.log('functionalitycollection attaching',this.self.functionalityname);
   felem.attach(this.self.functionalityname,paramobj,key);
-  var flw = this.superUser.follow([instname]);
+  var flw = this.superUser.follow([instname],function(stts){
+    if(stts==='RETREATING'){
+      this.destroy();
+    }
+  });
   var d = this.data;
-  flw.handleBid('gone',function(){
+  flw.handleBid('gone',function(open){
+    if(!open){return;}
     console.log(instname,'gone');
     //flw.bid('gone',{});
     d.commit('room_gone',[
